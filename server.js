@@ -1,25 +1,16 @@
-export default async function handler(req, res) {
-  if (req.method === "OPTIONS") {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    return res.status(200).end();
-  }
+import express from "express";
+import cors from "cors";
+import fetch from "node-fetch";
 
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
-  }
-
+app.post("/add-record", async (req, res) => {
   const apiToken = req.headers.authorization?.replace("Bearer ", "");
-  if (!apiToken) {
-    return res.status(400).json({ error: "Missing Hostinger API token" });
-  }
+  if (!apiToken) return res.status(400).json({ error: "Missing Hostinger API token" });
 
   const { domain, type, name, value, ttl } = req.body;
-
   if (!domain || !type || !name || !value) {
     return res.status(400).json({ error: "Missing required DNS fields" });
   }
@@ -43,9 +34,11 @@ export default async function handler(req, res) {
 
     const result = await hostingerRes.json();
     return res.status(hostingerRes.status).json(result);
-
   } catch (err) {
     console.error("Proxy Error:", err.message);
     return res.status(500).json({ error: err.message });
   }
-}
+});
+
+app.listen(3000, () => console.log("✅ Hostinger Proxy Running"));
+export default app;
