@@ -44,5 +44,5 @@ app.get("/", (req, res) => {
   res.send("✅ Hostinger Proxy Running");
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT =8080;
 app.listen(PORT, () => console.log("Server running on port:", PORT));
