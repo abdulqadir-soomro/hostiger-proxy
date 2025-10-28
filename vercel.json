@@ -1,8 +1,4 @@
 {
-  "functions": {
-    "api/hostinger.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "version": 2,
   "regions": ["sin1"]
 }
