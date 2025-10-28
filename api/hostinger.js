@@ -35,8 +35,23 @@ export default async function handler(req, res) {
       body: JSON.stringify({ type, name, value, ttl: ttl || 3600 }),
     });
 
-    const result = await hostingerRes.json();
-    return res.status(hostingerRes.status).json(result);
+    // ✅ Read raw text FIRST
+    const rawText = await hostingerRes.text();
+
+    // ✅ Try to parse JSON safely
+    let parsed;
+    try {
+      parsed = JSON.parse(rawText);
+    } catch {
+      console.error("❌ Hostinger returned HTML or non-JSON:");
+      console.error(rawText);
+      return res.status(500).json({
+        error: "Hostinger returned non-JSON (HTML likely → Cloudflare Error 1016)",
+        htmlSnippet: rawText.slice(0, 200) + "..."
+      });
+    }
+
+    return res.status(hostingerRes.status).json(parsed);
 
   } catch (err) {
     return res.status(500).json({ error: "Proxy request failed", details: err.message });
