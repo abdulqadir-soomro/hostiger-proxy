@@ -1,18 +1,21 @@
-import express from "express";
-import cors from "cors";
 import fetch from "node-fetch";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+export default async function handler(req, res) {
+  // Allow CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
 
-// ✅ Test Route
-app.get("/", (req, res) => {
-  res.json({ status: "✅ Hostinger Proxy Running" });
-});
+  if (req.method === "OPTIONS") return res.status(200).end();
 
-// ✅ DNS Route
-app.post("/api/hostinger/dns", async (req, res) => {
+  if (req.method === "GET") {
+    return res.json({ status: "✅ Hostinger Proxy Running" });
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
   const apiToken = req.headers.authorization?.replace("Bearer ", "");
   if (!apiToken) return res.status(400).json({ error: "Missing Hostinger API token" });
 
@@ -34,12 +37,9 @@ app.post("/api/hostinger/dns", async (req, res) => {
     });
 
     const result = await hostingerRes.json();
-    res.status(hostingerRes.status).json(result);
+    return res.status(hostingerRes.status).json(result);
 
   } catch (err) {
-    res.status(500).json({ error: "Proxy request failed", details: err.message });
+    return res.status(500).json({ error: "Proxy request failed", details: err.message });
   }
-});
-
-// ✅ Export app (Vercel will handle server + port)
-export default app;
+}
