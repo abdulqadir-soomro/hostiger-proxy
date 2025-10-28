@@ -6,13 +6,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/add-record", async (req, res) => {
+// ✅ Test Route
+app.get("/", (req, res) => {
+  res.json({ status: "✅ Hostinger Proxy Running" });
+});
+
+// ✅ DNS Route
+app.post("/api/hostinger/dns", async (req, res) => {
   const apiToken = req.headers.authorization?.replace("Bearer ", "");
   if (!apiToken) return res.status(400).json({ error: "Missing Hostinger API token" });
 
   const { domain, type, name, value, ttl } = req.body;
   if (!domain || !type || !name || !value) {
-    return res.status(400).json({ error: "Missing required DNS fields" });
+    return res.status(400).json({ error: "Missing DNS fields" });
   }
 
   const endpoint = `https://api.hostinger.com/v2/domains/${domain}/records`;
@@ -24,21 +30,16 @@ app.post("/add-record", async (req, res) => {
         Authorization: `Bearer ${apiToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        type,
-        name,
-        value,
-        ttl: ttl || 3600,
-      }),
+      body: JSON.stringify({ type, name, value, ttl: ttl || 3600 }),
     });
 
     const result = await hostingerRes.json();
-    return res.status(hostingerRes.status).json(result);
+    res.status(hostingerRes.status).json(result);
+
   } catch (err) {
-    console.error("Proxy Error:", err.message);
-    return res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Proxy request failed", details: err.message });
   }
 });
 
-app.listen(3000, () => console.log("✅ Hostinger Proxy Running"));
+// ✅ Export app (Vercel will handle server + port)
 export default app;
