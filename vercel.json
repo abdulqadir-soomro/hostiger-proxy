@@ -4,5 +4,6 @@
     "api/hostinger.js": {
       "runtime": "nodejs18.x"
     }
-  }
+  },
+  "regions": ["fra1"]
 }
